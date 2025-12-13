@@ -59,12 +59,22 @@ def _get_cfg_metainfo(package_path: str, cfg_path: str) -> dict:
     Returns:
         dict: Meta information of target experiment.
     """
-    meta_index_path = osp.join(package_path, ".mim", "model-index.yml")
-    meta_index = load(meta_index_path)
+    try:
+        meta_index_path = osp.join(package_path, ".mim", "model-index.yml")
+        meta_index = load(meta_index_path)
+    except FileNotFoundError:
+        # in case of installed without mim
+        meta_index_path = osp.join(package_path, "model-index.yml")
+        meta_index = load(meta_index_path)
+
     cfg_dict = dict()
     for meta_path in meta_index["Import"]:
-        meta_path = osp.join(package_path, ".mim", meta_path)
-        cfg_meta = load(meta_path)
+        try:
+            cfg_meta = load(osp.join(package_path, ".mim", meta_path))
+        except FileNotFoundError:
+            # in case of installed without mim
+            cfg_meta = load(osp.join(package_path, meta_path))
+
         for model_cfg in cfg_meta["Models"]:
             if "Config" not in model_cfg:
                 warnings.warn(f"There is not `Config` define in {model_cfg}")
@@ -107,8 +117,14 @@ def _get_external_cfg_base_path(package_path: str, cfg_name: str) -> str:
     Returns:
         str: Absolute config path from external package.
     """
-    cfg_path = osp.join(package_path, ".mim", "configs", cfg_name)
-    check_file_exist(cfg_path)
+    try:
+        cfg_path = osp.join(package_path, ".mim", "configs", cfg_name)
+        check_file_exist(cfg_path)
+    except FileNotFoundError:
+        # in case of installed without mim
+        cfg_path = osp.join(package_path, "configs", cfg_name)
+        check_file_exist(cfg_path)
+
     return cfg_path
 
 
