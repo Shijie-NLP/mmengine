@@ -2276,12 +2276,12 @@ class Runner:
 
     @master_only
     def dump_config(self) -> None:
-        """Dump config to `work_dir`."""
+        """Dump config to `log_dir`."""
         if self.cfg.filename is not None:
             filename = osp.basename(self.cfg.filename)
         else:
             filename = f'{self.timestamp}.py'
-        self.cfg.dump(osp.join(self.work_dir, filename))
+        self.cfg.dump(osp.join(self.log_dir, filename))
 
     def _check_scheduler_cfg(
             self, param_scheduler: Optional[Union[dict, list,

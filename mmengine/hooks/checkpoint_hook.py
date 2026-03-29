@@ -265,7 +265,7 @@ class CheckpointHook(Hook):
             runner (Runner): The runner of the training process.
         """
         if self.out_dir is None:
-            self.out_dir = runner.work_dir
+            self.out_dir = runner.log_dir
 
         # If self.file_client_args is None, self.file_client will not
         # used in CheckpointHook. To avoid breaking backward compatibility,
@@ -279,14 +279,13 @@ class CheckpointHook(Hook):
         else:
             self.file_backend = self.file_client
 
-        # if `self.out_dir` is not equal to `runner.work_dir`, it means that
+        # if `self.out_dir` is not equal to `runner.log_dir`, it means that
         # `self.out_dir` is set so the final `self.out_dir` is the
-        # concatenation of `self.out_dir` and the last level directory of
-        # `runner.work_dir`
-        if self.out_dir != runner.work_dir:
-            basename = osp.basename(runner.work_dir.rstrip(osp.sep))
+        # concatenation of `self.out_dir` and the `runner.experiment_name`
+        if self.out_dir != runner.log_dir:
             self.out_dir = self.file_backend.join_path(
-                self.out_dir, basename)  # type: ignore  # noqa: E501
+                self.out_dir,
+                runner.experiment_name)  # type: ignore  # noqa: E501
 
         runner.logger.info(f'Checkpoints will be saved to {self.out_dir}.')
 
@@ -456,7 +455,7 @@ class CheckpointHook(Hook):
         if not is_main_process():
             return
 
-        save_file = osp.join(runner.work_dir, 'last_checkpoint')
+        save_file = osp.join(self.out_dir, 'last_checkpoint')
         with open(save_file, 'w') as f:
             f.write(self.last_ckpt)  # type: ignore
 
